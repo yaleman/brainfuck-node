@@ -2,7 +2,6 @@
 
 "use strict";
 var DEBUG = false;
-var instance = null;
 
 // Opcodes
 var LEFT  = 0,
