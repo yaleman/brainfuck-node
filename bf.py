@@ -1,6 +1,6 @@
 #!/usr/bin/env python
+import numpy as np
 import math
-
 DEBUG = False
 
 LEFT  = 0
@@ -13,86 +13,83 @@ LOOP  = 6
 BACK  = 7
 
 
-def change_mem_index(obj, change):
-    obj.memoryIndex += change
-    if obj.memoryIndex not in obj.memory:
-        obj.memory[obj.memoryIndex] = 0
-
-def func_left(obj):
-    change_mem_index(obj, -1)
-    obj.programCounter += 1
-
-def func_right(obj):
-    change_mem_index(obj, 1)
-    obj.programCounter += 1  
-
-def func_plus(obj):
-    obj.setCell( (obj.getCell() + 1) & 0xFF)
-    obj.programCounter += 1
-
-def func_minus(obj):
-    obj.setCell((obj.getCell() - 1) & 0xFF)
-    obj.programCounter += 1
-
-def func_in(obj):
-    obj.setCell(obj.getNextInputByte())
-    obj.programCounter += 1
-    
-def func_out(obj):
-    obj.output += chr(obj.getCell())
-    obj.programCounter += 1
-    
-def func_loop(obj):
-    if (obj.getCell() == 0):
-        obj.programCounter = obj.program[obj.programCounter + 1]
-    obj.programCounter += 2
-    
-def func_back(obj):
-    if (obj.getCell() != 0):
-        obj.programCounter = obj.program[obj.programCounter + 1]
-    obj.programCounter += 2   
-
-FUNCS = [ func_left, func_right, func_plus, func_minus, func_in, func_out, func_loop, func_back ]
-
 class BrainFuckProgram():
     def __init__(self,code):
+        self.FUNCS = [ self.func_left, self.func_right, self.func_plus, self.func_minus, self.func_in, self.func_out, self.func_loop, self.func_back ]
+
         self.code = code
 
         self.programCounter = 0
         self.inputIndex = 0
         self.output = ""
 
-        self.memory = {0:0,1:0}
+        # initialize 30k memory cells
+        self.defmemory()
         self.memoryIndex = 0
-        self.minMemoryWrite = self.memoryIndex
-        self.maxMemoryWrite = self.memoryIndex
-        self.program = self.compile()
-        self.programlen = len(self.program)
 
+        #self.minMemoryWrite = self.memoryIndex
+        #self.maxMemoryWrite = self.memoryIndex
+        self.program = self.compile()
+
+    def defmemory(self):
+        self.memory = []
+        for i in range(30000):
+            self.memory.append(0)
+    
     def run(self):
-        while(self.step()):
-            #if not :
-            pass
-        print("Done.")
-        print(bf.output)
+        while(True):
+            self.step()
 
     def step(self):
         """ program step """
         try: 
-            FUNCS[self.program[self.programCounter]](self)
+            self.FUNCS[self.program[self.programCounter]]()
             return True
         except IndexError:
-            return False
+            print("Done.")
+            print(bf.output)
+            exit()
 
+
+    def func_left(self):
+        self.memoryIndex -= 1
+        self.programCounter += 1
+
+    def func_right(self):
+        self.memoryIndex += 1
+        self.programCounter += 1  
+
+    def func_plus(self):
+        self.setCell( (self.getCell() + 1) & 0xFF)
+        self.programCounter += 1
+
+    def func_minus(self):
+        self.setCell((self.getCell() - 1) & 0xFF)
+        self.programCounter += 1
+
+    def func_in(self):
+        self.setCell(self.getNextInputByte())
+        self.programCounter += 1
+        
+    def func_out(self):
+        self.output += chr(self.getCell())
+        self.programCounter += 1
+        
+    def func_loop(self):
+        if self.getCell() == 0:
+            self.programCounter = self.program[self.programCounter + 1]
+        self.programCounter += 2
+        
+    def func_back(self):
+        if (self.getCell() != 0):
+            self.programCounter = self.program[self.programCounter + 1]
+        self.programCounter += 2   
 
     def getCell(self):
         return self.memory[self.memoryIndex]
 
-
     def setCell(self, value):
         self.memory[self.memoryIndex] = value
-        self.minMemoryWrite = min((self.memoryIndex, self.minMemoryWrite))
-        self.maxMemoryWrite = max((self.memoryIndex, self.maxMemoryWrite))
 
     def getNextInputByte(self):
         if self.inputIndex == len(self.program):
@@ -142,8 +139,7 @@ if len(sys.argv) <2:
 else:
     filename = sys.argv[-1]
     code = open(filename, 'r').read().replace('\r','').replace('\n', '')
-
-print("Loaded code: {}".format(code))
+print("Loaded code from {}".format(filename))
 bf = BrainFuckProgram(code)
 print("Instructions: {}".format(len(bf.program)))
 print("Running...")
