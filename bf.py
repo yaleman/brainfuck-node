@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-import numpy as np
-import math
-DEBUG = False
 
 LEFT  = 0
 RIGHT = 1
@@ -11,6 +8,7 @@ IN    = 4
 OUT   = 5
 LOOP  = 6
 BACK  = 7
+import sys
 
 
 class BrainFuckProgram():
@@ -47,7 +45,8 @@ class BrainFuckProgram():
             return True
         except IndexError:
             print("Done.")
-            print(bf.output)
+            #print(bf.output)
+            sys.stdout.flush()
             exit()
 
 
@@ -73,6 +72,7 @@ class BrainFuckProgram():
         
     def func_out(self):
         self.output += chr(self.getCell())
+        sys.stdout.write(chr(self.getCell()))
         self.programCounter += 1
         
     def func_loop(self):
