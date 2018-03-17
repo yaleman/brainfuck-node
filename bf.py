@@ -9,7 +9,7 @@ OUT   = 5
 LOOP  = 6
 BACK  = 7
 import sys
-
+sys.setcheckinterval(100000000)
 
 class BrainFuckProgram():
     def __init__(self,code):
@@ -35,8 +35,9 @@ class BrainFuckProgram():
             self.memory.append(0)
     
     def run(self):
+        step = self.step
         while(True):
-            self.step()
+            step()
 
     def step(self):
         """ program step """
@@ -46,9 +47,9 @@ class BrainFuckProgram():
         except IndexError:
             print("Done.")
             #print(bf.output)
+            sys.stdout.write('\n')
             sys.stdout.flush()
             exit()
-
 
     def func_left(self):
         self.memoryIndex -= 1
@@ -59,11 +60,12 @@ class BrainFuckProgram():
         self.programCounter += 1  
 
     def func_plus(self):
-        self.setCell( (self.getCell() + 1) & 0xFF)
+        self.setCell((self.getCell() + 1) % 256 )
         self.programCounter += 1
 
     def func_minus(self):
-        self.setCell((self.getCell() - 1) & 0xFF)
+        self.setCell((self.getCell() - 1) % 256 )
+
         self.programCounter += 1
 
     def func_in(self):
@@ -71,7 +73,6 @@ class BrainFuckProgram():
         self.programCounter += 1
         
     def func_out(self):
-        self.output += chr(self.getCell())
         sys.stdout.write(chr(self.getCell()))
         self.programCounter += 1
         
